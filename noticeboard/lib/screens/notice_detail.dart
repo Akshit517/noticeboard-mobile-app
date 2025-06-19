@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:noticeboard/bloc/connectivity_status_bloc.dart';
@@ -287,6 +286,8 @@ class _NoticeDetailState extends State<NoticeDetail> {
                       builder: (context, snapshot) {
                         return GestureDetector(
                             onTap: () {
+                              widget.listNoticesBloc.toggleBookMarkSink
+                                  .add(widget.noticeIntro!);
                               _noticeContentBloc.eventSink
                                   .add(NoticeContentEvents.toggleStar);
                             },
