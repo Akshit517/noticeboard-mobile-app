@@ -81,7 +81,10 @@ class ProfileBloc {
   void aboutUsHandler() async {
     const url = "https://channeli.in/maintainer_site/";
     if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.inAppWebView);
+      await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.inAppBrowserView, // removing webview since it does not provide WindowInsets
+      );
     }
   }
 

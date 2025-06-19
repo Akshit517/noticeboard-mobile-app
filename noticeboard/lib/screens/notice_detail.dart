@@ -43,7 +43,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
   NoticeDetailBloc _noticeDetailBloc = NoticeDetailBloc();
   bool pdfAlreadyOpened = false;
   bool snackBarShown = false;
-  bool isGestureZoom = false;
+  // bool isGestureZoom = false;
   late Timer _timer;
   int currentIndex = 0;
 
@@ -114,59 +114,61 @@ class _NoticeDetailState extends State<NoticeDetail> {
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w700),
           ),
         ),
-        body: SizedBox.expand(
-          child: GestureDetector(
-            onScaleUpdate: (details) async {
-              isGestureZoom = true;
-              await _webViewController.enableZoom(true);
-              return;
-              // Your zoom logic here
-            },
-            onScaleEnd: (details) {
-              isGestureZoom = false;
-            },
-            onHorizontalDragStart: (details) {
-              if (isGestureZoom) {
-                return;
-              }
-              if (details.localPosition.dx < 75.0 && Platform.isIOS) {
-                if (previousRoute == launchingRoute) {
-                  navigatorKey.currentState!
-                      .pushReplacementNamed(bottomNavigationRoute);
-                } else {
-                  navigatorKey.currentState!.pop();
-                }
-              }
-            },
-            onHorizontalDragUpdate: (details) {
-              if (isGestureZoom) {
-                return;
-              }
-              if (details.delta.dx > 10) {
-                // Forward swipe. Have to show previous notice
-                if (currentIndex > 0)
-                  widget.listNoticesBloc.swipeBetweenNoticeDetail(
-                      widget.listOfNotices![currentIndex - 1]!,
-                      widget.listOfNotices,
-                      widget.listNoticesBloc,
-                      true);
-                else {
-                  if (!snackBarShown) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(noprevNoticeSnackBar);
-                    snackBarShown = true;
-                  }
-                }
-              } else if (details.delta.dx < -10) {
-                // Backward Swipe. Have to show next notice
-                widget.listNoticesBloc.swipeBetweenNoticeDetail(
-                    widget.listOfNotices![currentIndex + 1]!,
-                    widget.listOfNotices,
-                    widget.listNoticesBloc,
-                    false);
-              }
-            },
-            child: PopScope(
+        body: 
+          // SizedBox.expand(
+          // child: GestureDetector(
+          //   onScaleUpdate: (details) async {
+          //     isGestureZoom = true;
+          //     await _webViewController.enableZoom(true);
+          //     return;
+          //     // Your zoom logic here
+          //   },
+          //   onScaleEnd: (details) {
+          //     isGestureZoom = false;
+          //   },
+          //   onHorizontalDragStart: (details) {
+          //     if (isGestureZoom) {
+          //       return;
+          //     }
+          //     if (details.localPosition.dx < 75.0 && Platform.isIOS) {
+          //       if (previousRoute == launchingRoute) {
+          //         navigatorKey.currentState!
+          //             .pushReplacementNamed(bottomNavigationRoute);
+          //       } else {
+          //         navigatorKey.currentState!.pop();
+          //       }
+          //     }
+          //   },
+          //   onHorizontalDragUpdate: (details) {
+          //     if (isGestureZoom) {
+          //       return;
+          //     }
+          //     if (details.delta.dx > 10) {
+          //       // Forward swipe. Have to show previous notice
+          //       if (currentIndex > 0)
+          //         widget.listNoticesBloc.swipeBetweenNoticeDetail(
+          //             widget.listOfNotices![currentIndex - 1]!,
+          //             widget.listOfNotices,
+          //             widget.listNoticesBloc,
+          //             true);
+          //       else {
+          //         if (!snackBarShown) {
+          //           ScaffoldMessenger.of(context)
+          //               .showSnackBar(noprevNoticeSnackBar);
+          //           snackBarShown = true;
+          //         }
+          //       }
+          //     } else if (details.delta.dx < -10) {
+          //       // Backward Swipe. Have to show next notice
+          //       widget.listNoticesBloc.swipeBetweenNoticeDetail(
+          //           widget.listOfNotices![currentIndex + 1]!,
+          //           widget.listOfNotices,
+          //           widget.listNoticesBloc,
+          //           false);
+          //     }
+          //   },
+          //   child: 
+            PopScope(
               canPop: false,
               onPopInvoked: (didPop) async {
                 if (didPop) {
@@ -190,8 +192,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
                 ),
               ),
             ),
-          ),
-        ));
+          );
   }
 
   Expanded buildNoticeContent(double width) {
@@ -222,7 +223,8 @@ class _NoticeDetailState extends State<NoticeDetail> {
       mimeType: 'text/html',
       encoding: Encoding.getByName('utf-8'),
     );
-    _webViewController
+
+        _webViewController
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
           NavigationDelegate(onNavigationRequest: (navigation) async {
@@ -250,7 +252,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
     return Container(
         padding: EdgeInsets.all(10.0),
         child: WebViewWidget(controller: _webViewController , gestureRecognizers: Set()
-    ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer()))
+    // ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer()))
     ..add(Factory<ScaleGestureRecognizer>(() => ScaleGestureRecognizer())),));
   }
 

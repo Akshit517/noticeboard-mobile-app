@@ -26,7 +26,13 @@ if (flutterVersionName == null) {
 android {
     namespace 'com.img.noticeboard'
     compileSdk 36
-    ndkVersion flutter.ndkVersion
+    // Uses latest LTS version for compatibility with the latest Android features.
+    // For more information, see: https://developer.android.com/ndk/downloads
+    //
+    // Ideally, AGP should automatically pick the correct NDK version.
+    // This is currently an opn issue:
+    // https://github.com/flutter/flutter/issues/139427
+    ndkVersion = "27.2.12479018" 
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
