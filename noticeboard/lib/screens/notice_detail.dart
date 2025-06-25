@@ -44,6 +44,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
   bool snackBarShown = false;
   // bool isGestureZoom = false;
   late Timer _timer;
+  late StreamSubscription _streamSubscription;
   int currentIndex = 0;
 
   @override
@@ -55,7 +56,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
     _noticeContentBloc.starred = widget.noticeIntro!.starred;
     _noticeContentBloc.eventSink.add(NoticeContentEvents.fetchContent);
     _timer = addConnectivityStatusToSink();
-    _noticeDetailBloc.eventStream.listen((event) {
+    _streamSubscription = _noticeDetailBloc.eventStream.listen((event) {
       if (event == CurrentWidget.noticeDetail) {
         _noticeContentBloc.eventSink.add(NoticeContentEvents.fetchContent);
         _webViewController.reload();
@@ -79,6 +80,8 @@ class _NoticeDetailState extends State<NoticeDetail> {
   @override
   void dispose() {
     _noticeContentBloc.disposeStreams();
+    // Canceling the stream subscription so it does not leaves a dangling listener to the stream preventing race condition
+    _streamSubscription.cancel();
     if (_timer.isActive) {
       _timer.cancel();
     }
