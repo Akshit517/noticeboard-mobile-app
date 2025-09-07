@@ -37,7 +37,6 @@ class _ListNoticesState extends State<ListNotices> {
   void initState() {
     _controller = TextEditingController(); // search
     _listNoticesBloc.context = context;
-    _connectivityStatusBloc.context = context;
     _connectivityStatusBloc.currentWidget = CurrentWidget.listNotices;
     _listNoticesBloc.listNoticeMetaData = widget.listNoticeMetaData;
     _controller!.addListener(_handleQueryChanges);

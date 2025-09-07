@@ -19,13 +19,10 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final ProfileBloc _profileBloc = ProfileBloc();
   final AuthRepository _authRepository = AuthRepository();
-  final ConnectivityStatusBloc _connectivityStatusBloc =
-      ConnectivityStatusBloc();
   late Timer _timer;
   @override
   void initState() {
     _profileBloc.context = context;
-    _connectivityStatusBloc.context = context;
     _timer = addConnectivityStatusToSink();
     super.initState();
   }

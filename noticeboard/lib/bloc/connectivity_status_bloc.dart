@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:noticeboard/bloc/notice_detail_bloc.dart';
 import 'package:noticeboard/enum/connectivity_status_enum.dart';
 import 'package:noticeboard/enum/current_widget_enum.dart';
+import 'package:noticeboard/global/global_constants.dart';
 
 class ConnectivityStatusBloc {
-  late BuildContext context;
   late CurrentWidget currentWidget;
   final _eventController = StreamController<ConnectivityStatus>.broadcast();
   StreamSink<ConnectivityStatus> get eventSink => _eventController.sink;
@@ -25,12 +25,11 @@ class ConnectivityStatusBloc {
   ConnectivityStatusBloc._() {
     _eventStream.listen((connectivityEvent) {
       if (connectivityEvent == ConnectivityStatus.notConnected &&
-          previousResult == ConnectivityStatus.connected &&
-          context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(networkSnackBar);
+          previousResult == ConnectivityStatus.connected) {
+        snackKey.currentState!.showSnackBar(networkSnackBar);
       } else if (connectivityEvent == ConnectivityStatus.connected &&
           previousResult == ConnectivityStatus.notConnected) {
-        ScaffoldMessenger.of(context).showSnackBar(backOnlineSnackbar);
+        snackKey.currentState!.showSnackBar(backOnlineSnackbar);
         if (currentWidget == CurrentWidget.noticeDetail) {
           // Add an event in the sink so that notice detail webview can be refetched
           _noticeDetailBloc.eventSink.add(CurrentWidget.noticeDetail);

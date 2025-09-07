@@ -20,8 +20,7 @@ class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   void initState() {
-    ConnectivityStatusBloc _connectivityStatusBloc = ConnectivityStatusBloc();
-    _connectivityStatusBloc.context = context;
+    ConnectivityStatusBloc();
     super.initState();
   }
 

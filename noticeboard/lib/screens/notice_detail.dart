@@ -49,7 +49,6 @@ class _NoticeDetailState extends State<NoticeDetail> {
   @override
   void initState() {
     _noticeContentBloc.context = context;
-    _connectivityStatusBloc.context = context;
     _connectivityStatusBloc.currentWidget = CurrentWidget.noticeDetail;
     _noticeContentBloc.noticeIntro = widget.noticeIntro;
     _noticeContentBloc.starred = widget.noticeIntro!.starred;
