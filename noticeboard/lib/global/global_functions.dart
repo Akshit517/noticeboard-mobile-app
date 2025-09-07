@@ -9,6 +9,10 @@ import 'package:noticeboard/enum/connectivity_status_enum.dart';
 import 'package:noticeboard/global/global_constants.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 Icon bookMarkIconDecider(bool isBookmarked) {
   if (!isBookmarked)
@@ -233,4 +237,20 @@ Timer addConnectivityStatusToSink() {
     _connectivityStatusBloc.eventSink.add(connectivityStatus);
   });
   return _timer;
+}
+
+WebViewWidget webviewFromCreationParams(PlatformWebViewController controller){
+  late PlatformWebViewWidgetCreationParams params;
+  if (WebViewPlatform.instance is AndroidWebViewPlatform){
+    params = AndroidWebViewWidgetCreationParams(
+      controller: controller,
+      displayWithHybridComposition: true,
+    );
+  } else {
+    params = WebKitWebViewWidgetCreationParams(
+      controller: controller,
+    );
+  }
+  final WebViewWidget webViewWidget = WebViewWidget.fromPlatformCreationParams(params: params, ); 
+  return webViewWidget;
 }
