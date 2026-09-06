@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:noticeboard/bloc/connectivity_status_bloc.dart';
 import 'package:noticeboard/bloc/list_notices_bloc.dart';
 import 'package:noticeboard/bloc/notice_detail_bloc.dart';
 import 'package:noticeboard/enum/current_widget_enum.dart';
@@ -32,8 +31,6 @@ class _NoticeDetailState extends State<NoticeDetail> {
   final NoticeIntro? noticeIntro;
   // ignore: unused_element
   _NoticeDetailState({this.noticeIntro});
-  final ConnectivityStatusBloc _connectivityStatusBloc =
-      ConnectivityStatusBloc();
   NoticeContentBloc _noticeContentBloc = NoticeContentBloc();
   PlatformWebViewController _webViewController = PlatformWebViewController(
     const PlatformWebViewControllerCreationParams()
@@ -41,19 +38,15 @@ class _NoticeDetailState extends State<NoticeDetail> {
   NoticeDetailBloc _noticeDetailBloc = NoticeDetailBloc();
   bool pdfAlreadyOpened = false;
   bool snackBarShown = false;
-  // bool isGestureZoom = false;
-  late Timer _timer;
   late StreamSubscription _streamSubscription;
   int currentIndex = 0;
 
   @override
   void initState() {
     _noticeContentBloc.context = context;
-    _connectivityStatusBloc.currentWidget = CurrentWidget.noticeDetail;
     _noticeContentBloc.noticeIntro = widget.noticeIntro;
     _noticeContentBloc.starred = widget.noticeIntro!.starred;
     _noticeContentBloc.eventSink.add(NoticeContentEvents.fetchContent);
-    _timer = addConnectivityStatusToSink();
     _streamSubscription = _noticeDetailBloc.eventStream.listen((event) {
       if (event == CurrentWidget.noticeDetail) {
         _noticeContentBloc.eventSink.add(NoticeContentEvents.fetchContent);
@@ -68,10 +61,6 @@ class _NoticeDetailState extends State<NoticeDetail> {
     _noticeContentBloc.disposeStreams();
     // Canceling the stream subscription so it does not leaves a dangling listener to the stream preventing race condition
     _streamSubscription.cancel();
-    if (_timer.isActive) {
-      _timer.cancel();
-    }
-
     super.dispose();
   }
 
