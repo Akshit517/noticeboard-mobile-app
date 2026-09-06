@@ -16,7 +16,6 @@ class MyBottomNavigationBar extends StatefulWidget {
 
 class _MyBottomNavigationBarState extends State<MyBottomNavigationBar> {
   BottomNavigatorBloc _bottomNavigatorBloc = BottomNavigatorBloc();
-  late Timer _timer;
   final widgetOptions = [
     ListNotices(
       listNoticeMetaData: ListNoticeMetaData(
@@ -41,15 +40,8 @@ class _MyBottomNavigationBarState extends State<MyBottomNavigationBar> {
   }
 
   @override
-  void initState() {
-    _timer = addConnectivityStatusToSink();
-    super.initState();
-  }
-
-  @override
   void dispose() {
     _bottomNavigatorBloc.disposeStreams();
-    if (_timer.isActive) _timer.cancel();
     super.dispose();
   }
 

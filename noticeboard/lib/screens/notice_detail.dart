@@ -1,21 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
-import 'package:noticeboard/bloc/connectivity_status_bloc.dart';
 import 'package:noticeboard/bloc/list_notices_bloc.dart';
 import 'package:noticeboard/bloc/notice_detail_bloc.dart';
 import 'package:noticeboard/enum/current_widget_enum.dart';
 import 'package:noticeboard/enum/notice_content_enum.dart';
 import 'package:noticeboard/routes/routing_constants.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import '../global/global_constants.dart';
 import '../models/notice_intro.dart';
 import 'package:flutter/material.dart';
 import '../bloc/notice_content_bloc.dart';
 import '../global/global_functions.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import '../styles/notice_detail_consts.dart';
 
 // ignore: must_be_immutable
@@ -36,54 +31,36 @@ class _NoticeDetailState extends State<NoticeDetail> {
   final NoticeIntro? noticeIntro;
   // ignore: unused_element
   _NoticeDetailState({this.noticeIntro});
-  final ConnectivityStatusBloc _connectivityStatusBloc =
-      ConnectivityStatusBloc();
   NoticeContentBloc _noticeContentBloc = NoticeContentBloc();
-  WebViewController _webViewController = WebViewController();
+  PlatformWebViewController _webViewController = PlatformWebViewController(
+    const PlatformWebViewControllerCreationParams()
+  );
   NoticeDetailBloc _noticeDetailBloc = NoticeDetailBloc();
   bool pdfAlreadyOpened = false;
   bool snackBarShown = false;
-  bool isGestureZoom = false;
-  late Timer _timer;
+  late StreamSubscription _streamSubscription;
   int currentIndex = 0;
 
   @override
   void initState() {
     _noticeContentBloc.context = context;
-    _connectivityStatusBloc.context = context;
-    _connectivityStatusBloc.currentWidget = CurrentWidget.noticeDetail;
     _noticeContentBloc.noticeIntro = widget.noticeIntro;
     _noticeContentBloc.starred = widget.noticeIntro!.starred;
     _noticeContentBloc.eventSink.add(NoticeContentEvents.fetchContent);
-    _timer = addConnectivityStatusToSink();
-    _noticeDetailBloc.eventStream.listen((event) {
+    _streamSubscription = _noticeDetailBloc.eventStream.listen((event) {
       if (event == CurrentWidget.noticeDetail) {
         _noticeContentBloc.eventSink.add(NoticeContentEvents.fetchContent);
         _webViewController.reload();
       }
     });
-    for (int i = 0; i < widget.listOfNotices!.length; i++) {
-      if (widget.listOfNotices?[i]?.id == widget.noticeIntro?.id) {
-        currentIndex = i;
-      }
-    }
-    if (currentIndex == widget.listOfNotices!.length - 1) {
-      widget.listNoticesBloc.loadMore().whenComplete(() {
-        setState(() {
-          widget.listOfNotices = widget.listNoticesBloc.dynamicNoticeList;
-        });
-      });
-    }
     super.initState();
   }
 
   @override
   void dispose() {
     _noticeContentBloc.disposeStreams();
-    if (_timer.isActive) {
-      _timer.cancel();
-    }
-
+    // Canceling the stream subscription so it does not leaves a dangling listener to the stream preventing race condition
+    _streamSubscription.cancel();
     super.dispose();
   }
 
@@ -114,59 +91,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w700),
           ),
         ),
-        body: SizedBox.expand(
-          child: GestureDetector(
-            onScaleUpdate: (details) async {
-              isGestureZoom = true;
-              await _webViewController.enableZoom(true);
-              return;
-              // Your zoom logic here
-            },
-            onScaleEnd: (details) {
-              isGestureZoom = false;
-            },
-            onHorizontalDragStart: (details) {
-              if (isGestureZoom) {
-                return;
-              }
-              if (details.localPosition.dx < 75.0 && Platform.isIOS) {
-                if (previousRoute == launchingRoute) {
-                  navigatorKey.currentState!
-                      .pushReplacementNamed(bottomNavigationRoute);
-                } else {
-                  navigatorKey.currentState!.pop();
-                }
-              }
-            },
-            onHorizontalDragUpdate: (details) {
-              if (isGestureZoom) {
-                return;
-              }
-              if (details.delta.dx > 10) {
-                // Forward swipe. Have to show previous notice
-                if (currentIndex > 0)
-                  widget.listNoticesBloc.swipeBetweenNoticeDetail(
-                      widget.listOfNotices![currentIndex - 1]!,
-                      widget.listOfNotices,
-                      widget.listNoticesBloc,
-                      true);
-                else {
-                  if (!snackBarShown) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(noprevNoticeSnackBar);
-                    snackBarShown = true;
-                  }
-                }
-              } else if (details.delta.dx < -10) {
-                // Backward Swipe. Have to show next notice
-                widget.listNoticesBloc.swipeBetweenNoticeDetail(
-                    widget.listOfNotices![currentIndex + 1]!,
-                    widget.listOfNotices,
-                    widget.listNoticesBloc,
-                    false);
-              }
-            },
-            child: PopScope(
+        body: PopScope(
               canPop: false,
               onPopInvoked: (didPop) async {
                 if (didPop) {
@@ -190,8 +115,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
                 ),
               ),
             ),
-          ),
-        ));
+          );
   }
 
   Expanded buildNoticeContent(double width) {
@@ -216,42 +140,63 @@ class _NoticeDetailState extends State<NoticeDetail> {
     );
   }
 
-  Container buildContent(AsyncSnapshot snapshot) {
-    Uri uri = Uri.dataFromString(
-      snapshot.data.content,
-      mimeType: 'text/html',
-      encoding: Encoding.getByName('utf-8'),
+  String wrapHtmlHeaders(String originalHtml) {
+    return """
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: sans-serif;
+              font-size: 0.75em;
+            }
+            img { 
+              height: auto; 
+              max-width: 100%;
+            }
+          </style>
+        </head>
+        <body>
+          $originalHtml
+        </body>
+      </html>
+    """;
+  }
+
+Container buildContent(AsyncSnapshot snapshot) {
+    String modifiedHtml = wrapHtmlHeaders(snapshot.data.content);
+    final delegate = PlatformNavigationDelegate(
+      const PlatformNavigationDelegateCreationParams(),
     );
+    delegate.setOnNavigationRequest((navigation) async {
+      final url = navigation.url;
+      if (url.endsWith(".pdf") && !pdfAlreadyOpened) {
+        pdfAlreadyOpened = true;
+        if (await canLaunchUrlString(url)) {
+          final newUrl =
+              "https://docs.google.com/gview?embedded=true&url=$url";
+          await launchUrlString(newUrl);
+        }
+        return NavigationDecision.prevent;
+      } else {
+        if (await canLaunchUrlString(url)) {
+          await launchUrlString(
+            url,
+            mode: LaunchMode.externalApplication,
+          );
+          return NavigationDecision.prevent;
+        }
+      }
+      return NavigationDecision.navigate;
+    });
     _webViewController
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-          NavigationDelegate(onNavigationRequest: (navigation) async {
-        if (navigation.url.endsWith("pdf") && !pdfAlreadyOpened) {
-          if (await canLaunchUrlString(navigation.url)) {
-            String newUrl =
-                "https://docs.google.com/gview?embedded=true&url=${navigation.url}";
-            await launchUrlString(newUrl);
-          }
-          return NavigationDecision.prevent;
-        } else {
-          if (await canLaunchUrlString(navigation.url)) {
-            await launchUrlString(
-              navigation.url,
-              mode: LaunchMode.externalApplication,
-            );
-            return NavigationDecision.prevent;
-          }
-        }
-        return NavigationDecision.navigate;
-      }))
-      ..loadRequest(uri).then((value) async {
-        await _webViewController.enableZoom(true);
-      });
+      ..setPlatformNavigationDelegate(delegate)
+      ..enableZoom(true)
+      ..loadHtmlString(modifiedHtml);
+
     return Container(
-        padding: EdgeInsets.all(10.0),
-        child: WebViewWidget(controller: _webViewController , gestureRecognizers: Set()
-    ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer()))
-    ..add(Factory<ScaleGestureRecognizer>(() => ScaleGestureRecognizer())),));
+        child: webviewFromCreationParams(_webViewController));
   }
 
   Container buildNoticeIntro(double _width) {
@@ -285,6 +230,8 @@ class _NoticeDetailState extends State<NoticeDetail> {
                       builder: (context, snapshot) {
                         return GestureDetector(
                             onTap: () {
+                              widget.listNoticesBloc.toggleBookMarkSink
+                                  .add(widget.noticeIntro!);
                               _noticeContentBloc.eventSink
                                   .add(NoticeContentEvents.toggleStar);
                             },

@@ -109,7 +109,7 @@ class ApiService {
           // await _authService.fetchAccessTokenFromRefresh();
           await _authService.fetchAccessToken();
       final http.Response allImportantNoticesResponse = await http.get(
-          Uri.dataFromString(BASE_URL + IMPORTANT_NOTICES + page.toString()),
+          Uri.parse(BASE_URL + IMPORTANT_NOTICES + page.toString()),
           headers: {
             AUTHORIZAION_KEY: AUTHORIZATION_PREFIX + accessTokenObj.accessToken!
           });

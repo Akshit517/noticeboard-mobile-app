@@ -1,7 +1,7 @@
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral() // removed jcenter since it has became read-only
     }
 }
 

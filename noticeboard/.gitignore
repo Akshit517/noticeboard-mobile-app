@@ -34,6 +34,12 @@
 # Web related
 lib/generated_plugin_registrant.dart
 
+# iOS
+ios/build/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+
 # Symbolication related
 app.*.symbols
 
