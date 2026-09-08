@@ -145,6 +145,7 @@ class _NoticeDetailState extends State<NoticeDetail> {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
           <style>
             body {
               font-family: sans-serif;
