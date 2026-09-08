@@ -145,13 +145,14 @@ class _NoticeDetailState extends State<NoticeDetail> {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
           <style>
             body {
               font-family: sans-serif;
-              font-size: 0.75em;
+              font-size: 0.65em;
             }
-            img { 
-              height: auto; 
+            img {
+              height: auto;
               max-width: 100%;
             }
           </style>
