@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:noticeboard/global/global_functions.dart';
 import '../enum/dynamic_fetch_enum.dart';
 import '../screens/list_notices.dart';
 import '../models/notice_intro.dart';
@@ -45,16 +47,18 @@ class _MyBottomNavigationBarState extends State<MyBottomNavigationBar> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) {
+          return;
+        }
         await Future.delayed(
           Duration(milliseconds: 500),
         );
         if (Platform.isAndroid) {
           SystemNavigator.pop();
-          return true;
         } else {
-          return false;
         }
       },
       child: StreamBuilder<int>(

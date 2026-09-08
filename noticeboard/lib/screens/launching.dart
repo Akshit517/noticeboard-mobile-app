@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:noticeboard/routes/routing_constants.dart';
 import 'package:noticeboard/styles/launching_constants.dart';
 import 'package:noticeboard/styles/profile_constants.dart';
-import 'package:uni_links/uni_links.dart';
+
 import '../global/global_constants.dart';
 import '../models/notice_content.dart';
 import '../models/notice_intro.dart';
 import '../services/api_service/api_service.dart';
 import '../services/auth/auth_repository.dart';
 import '../global/global_functions.dart';
-import '../styles/launching_constants.dart';
 import '../styles/login_constants.dart';
 
 class Launcher extends StatefulWidget {
@@ -44,7 +44,8 @@ class _LauncherState extends State<Launcher> {
     // ... check initialLink
     // Uri parsing may fail, so we use a try/catch FormatException.
     try {
-      final initialUri = await getInitialUri();
+      // AppLinks is a singleton object
+      final initialUri = await AppLinks().getInitialLink();
       if (initialUri != null) {
         var pathSegs = initialUri.pathSegments;
         log(pathSegs.toString());
@@ -59,7 +60,7 @@ class _LauncherState extends State<Launcher> {
       return null;
     }
     // Attach a listener to the stream
-    _sub = linkStream.listen((String? link) async {
+      _sub = AppLinks().stringLinkStream.listen((String? link) async {
       // Parse the link and warn the user, if it is not correct
       if (link != null) {
         Uri uri = Uri.parse(link);
@@ -135,7 +136,8 @@ class _LauncherState extends State<Launcher> {
 
   @override
   void dispose() {
-    _sub.cancel();
+    // If the stream is done or it returns an error , cancel the subscription and returns null.
+    AppLinks().stringLinkStream.drain();
     super.dispose();
   }
 }

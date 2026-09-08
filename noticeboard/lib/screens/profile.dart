@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:noticeboard/global/global_constants.dart';
 import 'package:noticeboard/global/global_functions.dart';
@@ -16,7 +18,6 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final ProfileBloc _profileBloc = ProfileBloc();
   final AuthRepository _authRepository = AuthRepository();
-
   @override
   void initState() {
     _profileBloc.context = context;
@@ -26,6 +27,7 @@ class _ProfileState extends State<Profile> {
   @override
   void dispose() {
     _profileBloc.disposeStreams();
+    
     super.dispose();
   }
 
@@ -116,6 +118,9 @@ class _ProfileState extends State<Profile> {
                       notificationSettingsIcon,
                       'Notification settings',
                       ProfileEvents.notificationSettingsEvent),
+                  sizedBox(20.0),
+                  buildMenuItem(
+                      aboutUsIcon, "About us", ProfileEvents.aboutUsEvent),
                   sizedBox(20.0),
                   buildMenuItem(logoutIcon, 'Logout', ProfileEvents.logoutEvent)
                 ],

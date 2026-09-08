@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:focused_menu/modals.dart';
+import 'package:noticeboard/bloc/notice_detail_bloc.dart';
+import 'package:noticeboard/enum/current_widget_enum.dart';
 import 'package:noticeboard/models/filters_list.dart';
 import 'package:noticeboard/models/notice_intro.dart';
 import 'package:noticeboard/models/paginated_info.dart';
@@ -21,9 +25,10 @@ class ListNotices extends StatefulWidget {
 }
 
 class _ListNoticesState extends State<ListNotices> {
-  final ListNoticesBloc _listNoticesBloc = ListNoticesBloc();
+  final ListNoticesBloc _listNoticesBloc = ListNoticesBloc(); // search
   final AuthRepository _authRepository = AuthRepository();
-  TextEditingController? _controller; // search
+  final NoticeDetailBloc _noticeDetailBloc = NoticeDetailBloc();
+  TextEditingController? _controller;
 
   @override
   void initState() {
@@ -33,6 +38,11 @@ class _ListNoticesState extends State<ListNotices> {
     _controller!.addListener(_handleQueryChanges);
     _listNoticesBloc.dynamicFetch = widget.listNoticeMetaData!.dynamicFetch;
     _listNoticesBloc.dynamicFetchNotices();
+    _noticeDetailBloc.eventStream.asBroadcastStream().listen((currentWidget) {
+      if (currentWidget == CurrentWidget.listNotices) {
+        _listNoticesBloc.dynamicFetchNotices();
+      }
+    });
     super.initState();
   }
 
@@ -57,7 +67,7 @@ class _ListNoticesState extends State<ListNotices> {
   }
 
   void pushNoticeDetail(NoticeIntro noticeIntro) {
-    _listNoticesBloc.pushNoticeDetail(noticeIntro);
+    _listNoticesBloc.pushNoticeDetail(noticeIntro , _listNoticesBloc.dynamicNoticeList , _listNoticesBloc);
   }
 
   bool _handleScrollNotification(ScrollNotification scrollInfo) {
